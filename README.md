@@ -27,13 +27,14 @@ Prerequisites
 
 Installation:
 1. Clone repository
-   git clone https://github.com/A-n-sh/Personal-Finance-Manager
-   cd personal-finance-tracker
+- git clone https://github.com/A-n-sh/Personal-Finance-Manager
+- cd personal-finance-tracker
 2. Create a virtual environment (recommended)
-   python -m venv venv
-   venv\Scripts\activate
-   source venv/bin/activate
+- python -m venv venv
+- venv\Scripts\activate
+- source venv/bin/activate
 3. Install dependencies
-   pip install -r requirements.txt
+- pip install -r requirements.txt
 4. Run the application
-   python PFM.py
+- python PFM.py
+
