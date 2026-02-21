@@ -1,0 +1,33 @@
+{
+  "transactions": [
+    {
+      "type": "income",
+      "amount": 3000.0,
+      "category": "Salary",
+      "description": "Monthly pay",
+      "date": "2026-02-20",
+      "timestamp": "2026-02-20T22:02:13.535626"
+    },
+    {
+      "type": "expense",
+      "amount": 50.0,
+      "category": "Food & Dining",
+      "description": "Food",
+      "date": "2026-02-20",
+      "timestamp": "2026-02-20T22:03:22.991386"
+    },
+    {
+      "type": "expense",
+      "amount": 100.0,
+      "category": "Transportation",
+      "description": "Fuel costs",
+      "date": "2026-02-20",
+      "timestamp": "2026-02-20T22:03:49.790022"
+    }
+  ],
+  "savings_goals": [],
+  "settings": {
+    "currency": "USD",
+    "date_format": "YYYY-MM-DD"
+  }
+}
