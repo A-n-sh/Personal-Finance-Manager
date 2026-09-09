@@ -61,16 +61,7 @@ class Visualizer:
               income, expenses, net
             Returns an empty DataFrame if there are no transactions.
         """
-        transactions = self.data_manager.get_all_transactions()
-
-        if not transactions:
-            return pd.DataFrame()
-
-        df = pd.DataFrame(transactions)
-        df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0)
-        df["date"]   = pd.to_datetime(df["date"], errors="coerce")
-        df = df.dropna(subset=["date"])
-
+        df = self.data_manager.get_transactions_dataframe()
         if df.empty:
             return pd.DataFrame()
 
@@ -153,14 +144,10 @@ class Visualizer:
         underlying data, keeping all aggregation logic consistent.
         """
         try:
-            transactions = self.data_manager.get_all_transactions()
-
-            if not transactions:
+            df = self.data_manager.get_transactions_dataframe()
+            if df.empty:
                 print("No transactions to visualize.")
                 return
-
-            df = pd.DataFrame(transactions)
-            df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0)
 
             expenses = df[df["type"] == "expense"]
 

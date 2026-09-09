@@ -17,6 +17,28 @@ import numpy as np
 import pandas as pd
 
 
+TRANSACTION_COLUMNS = [
+    "type",
+    "amount",
+    "category",
+    "description",
+    "date",
+    "timestamp",
+]
+REQUIRED_TRANSACTION_COLUMNS = {
+    "type",
+    "amount",
+    "category",
+    "description",
+    "date",
+}
+TRANSACTION_TYPES = ["income", "expense"]
+
+
+class TransactionDataError(ValueError):
+    """Raised when stored transaction data cannot be analyzed safely."""
+
+
 class DataManager:
     """
     Manages data persistence for the finance tracker.
@@ -127,6 +149,71 @@ class DataManager:
             List of transaction dicts, or an empty list.
         """
         return self.data.get("transactions", [])
+
+    def get_transactions_dataframe(self) -> pd.DataFrame:
+        """
+        Return transactions as an independently owned, validated DataFrame.
+
+        The JSON-compatible list remains the persistence source of truth.
+        Analytics and visualization code should use this method so amount,
+        date, and transaction type normalization happens consistently.
+        """
+        transactions = self.get_all_transactions()
+
+        if not transactions:
+            return pd.DataFrame(
+                {
+                    "type": pd.Series(
+                        pd.Categorical([], categories=TRANSACTION_TYPES)
+                    ),
+                    "amount": pd.Series(dtype="float64"),
+                    "category": pd.Series(dtype="string"),
+                    "description": pd.Series(dtype="string"),
+                    "date": pd.Series(dtype="datetime64[ns]"),
+                    "timestamp": pd.Series(dtype="string"),
+                }
+            )
+
+        df = pd.DataFrame.from_records(transactions).copy(deep=True)
+        missing_columns = REQUIRED_TRANSACTION_COLUMNS.difference(df.columns)
+        if missing_columns:
+            missing = ", ".join(sorted(missing_columns))
+            raise TransactionDataError(
+                f"Transaction data is missing required columns: {missing}"
+            )
+
+        if "timestamp" not in df.columns:
+            df["timestamp"] = pd.NA
+
+        normalized_types = df["type"].astype("string").str.lower()
+        numeric_amounts = pd.to_numeric(df["amount"], errors="coerce")
+        parsed_dates = pd.to_datetime(df["date"], errors="coerce")
+
+        invalid_rows = (
+            numeric_amounts.isna()
+            | numeric_amounts.le(0)
+            | parsed_dates.isna()
+            | ~normalized_types.isin(TRANSACTION_TYPES)
+            | df["category"].isna()
+            | df["description"].isna()
+        )
+        if invalid_rows.any():
+            rows = ", ".join(str(index + 1) for index in df.index[invalid_rows])
+            raise TransactionDataError(
+                f"Invalid transaction values found in row(s): {rows}"
+            )
+
+        df = df.reindex(columns=TRANSACTION_COLUMNS)
+        df["type"] = pd.Categorical(
+            normalized_types, categories=TRANSACTION_TYPES
+        )
+        df["amount"] = numeric_amounts.astype("float64")
+        df["category"] = df["category"].astype("string")
+        df["description"] = df["description"].astype("string")
+        df["date"] = parsed_dates
+        df["timestamp"] = df["timestamp"].astype("string")
+
+        return df.copy(deep=True)
 
     # ------------------------------------------------------------------
     # Savings goal accessors
@@ -264,13 +351,9 @@ class DataManager:
         Returns:
             Dict of aggregated statistics.
         """
-        transactions = self.get_all_transactions()
-
-        if not transactions:
+        df = self.get_transactions_dataframe()
+        if df.empty:
             return {}
-
-        df = pd.DataFrame(transactions)
-        df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0)
 
         # Extract raw NumPy arrays for explicit numerical computation
         income_amounts  = df.loc[df["type"] == "income",  "amount"].values

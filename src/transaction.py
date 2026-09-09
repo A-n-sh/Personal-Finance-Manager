@@ -24,32 +24,13 @@ class TransactionManager:
 
     def _get_df(self) -> pd.DataFrame:
         """
-        Load all transactions into a typed pandas DataFrame.
-
-        This is the single entry point for converting raw JSON data into a
-        DataFrame. Type enforcement happens here once so every downstream
-        method receives a clean, consistently-typed structure.
+        Load all transactions through the shared typed DataFrame boundary.
 
         Returns:
             pd.DataFrame with columns: date, type, amount, category,
                                        description, timestamp
         """
-        transactions = self.data_manager.get_all_transactions()
-
-        if not transactions:
-            return pd.DataFrame(
-                columns=["date", "type", "amount", "category", "description", "timestamp"]
-            )
-
-        df = pd.DataFrame(transactions)
-
-        # Enforce numeric amounts; coerce bad values to NaN then fill with 0
-        df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0)
-
-        # Parse dates; unparseable values become NaT
-        df["date"] = pd.to_datetime(df["date"], errors="coerce")
-
-        return df
+        return self.data_manager.get_transactions_dataframe()
 
     # ------------------------------------------------------------------
     # Core CRUD
