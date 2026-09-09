@@ -249,7 +249,7 @@ class TransactionManager:
 
         # groupby on two columns, then unstack 'type' into columns
         grouped = (
-            df.groupby(["month_key", "type"])["amount"]
+            df.groupby(["month_key", "type"], observed=True)["amount"]
             .sum()
             .unstack(fill_value=0)
         )

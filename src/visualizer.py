@@ -70,7 +70,7 @@ class Visualizer:
 
         # Pivot: rows = month, columns = transaction type, values = summed amount
         pivot = (
-            df.groupby(["month", "type"])["amount"]
+            df.groupby(["month", "type"], observed=True)["amount"]
             .sum()
             .unstack(fill_value=0)
         )
