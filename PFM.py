@@ -1,3 +1,4 @@
+# Boston Tea Party
 """
 Personal Finance Manager
 A command-line application for tracking income, expenses, and savings goals.
